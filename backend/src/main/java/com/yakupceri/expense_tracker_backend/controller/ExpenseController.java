@@ -3,7 +3,9 @@ package com.yakupceri.expense_tracker_backend.controller;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,13 +25,19 @@ public class ExpenseController {
         this.expenseService = expenseService;
     }
 
-    @GetMapping //Veri çekmek ve Okumak için
+    @GetMapping //Tüm harcamaları listele: GET http://localhost:8080/api/expenses
     public List<Expense> getAllExpenses() { //komutu ile servisi tetikler, veritabanındaki tüm harcamaları çeker ve ekrana JSON olarak fırlatır.
         return  expenseService.getAllExpenses();
     }
 
-    @PostMapping //Veri kaydetmek ve oluşturmak için
+    @PostMapping //Yeni harcama ekle: POST http://localhost:8080/api/expenses
     public Expense createExpense(@RequestBody Expense expense) {
         return expenseService.saveExpense(expense);
+    }
+
+    // Harcama sil: DELETE http://localhost:8080/api/expenses/{id}
+    @DeleteMapping("/{id}")
+    public void deleteExpense(@PathVariable Long id){
+        expenseService.deleteExpense(id);
     }
 }

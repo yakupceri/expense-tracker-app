@@ -15,16 +15,18 @@ public class ExpenseService {
         this.ExpenseRepository = expenseRepository;
     }
 
-    public List<Expense> getAllExpenses(){ //SQL Server'daki tablodan bütün kayıtları çeker ve Java'nın liste formatına (List) çevirip geri verir.
+     // Tüm harcamaları getir (Web sitesindeki liste tablosu için)
+    public List<Expense> getAllExpenses(){
         return ExpenseRepository.findAll(); 
     }
 
-    public Expense savExpense(Expense expense) { //Dışarıdan yeni bir harcama verisi geldiğinde bu metot devreye girer. İçindeki expenseRepository.save(expense) komutu gelen veriyi alır ve SQL Server'daki tablomuza yeni satır olarak kaydeder.
+    // Yeni harcama kaydet (Web sitesindeki form için)
+    public Expense saveExpense(Expense expense) { 
         return ExpenseRepository.save(expense);
     }
 
-    public Expense saveExpense(Expense expense) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'saveExpense'");
+    // Harcama sil (Web sitesindeki sil butonu için)
+    public void deleteExpense(Long id) {
+        ExpenseRepository.deleteById(id);
     }
 }

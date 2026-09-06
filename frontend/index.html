@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Harcama Takip</title>
+    <!-- Tasarım için Tailwind CSS kullanıyoruz -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans p-6">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">💰 Harcama Takip Uygulaması</h1>
+
+        <!-- Harcama Ekleme Formu -->
+        <form id="expenseForm" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 bg-gray-50 p-4 rounded-lg border">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Başlık</label>
+                <input type="text" id="title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tutar (TL)</label>
+                <input type="number" step="0.01" id="amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Kategori</label>
+                <input type="text" id="category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Tarih</label>
+                <input type="date" id="date" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 text-sm">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700 transition">Ekle</button>
+            </div>
+        </form>
+
+        <!-- Harcama Listesi Tablosu -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Başlık</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tutar</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="expenseTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- JavaScript buraya verileri dolduracak -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Backend'in çalıştığı adres
+        const API_URL = 'http://localhost:8080/api/expenses';
+
+        // 1. Veritabanındaki tüm harcamaları çek ve ekrandaki tabloda göster
+        async function fetchExpenses() {
+            try {
+                const response = await fetch(API_URL);
+                const expenses = await response.json();
+                const tbody = document.getElementById('expenseTableBody');
+                tbody.innerHTML = '';
+
+                expenses.forEach(exp => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${exp.title}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${exp.amount} TL</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${exp.category}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${exp.date}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button onclick="deleteExpense(${exp.id})" class="text-red-600 hover:text-red-900">Sil</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Harcamalar yüklenirken hata oluştu:', error);
+            }
+        }
+
+        // 2. Form doldurulup "Ekle" butonuna basıldığında backend'e POST isteği at
+        document.getElementById('expenseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newExpense = {
+                title: document.getElementById('title').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value
+            };
+
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newExpense)
+            });
+
+            if (response.ok) {
+                document.getElementById('expenseForm').reset();
+                fetchExpenses(); // Listeyi anında güncelle
+            } else {
+                alert('Harcama eklenemedi! Kuralları kontrol edin.');
+            }
+        });
+
+        // 3. Sil butonuna basıldığında ilgili ID'yi sil
+        async function deleteExpense(id) {
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                fetchExpenses();
+            }
+        }
+
+        // Sayfa açıldığı an listeyi getir
+        fetchExpenses();
+    </script>
+</body>
+</html>

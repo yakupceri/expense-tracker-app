@@ -2,6 +2,7 @@ package com.yakupceri.expense_tracker_backend.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.yakupceri.expense_tracker_backend.domain.Expense;
 import com.yakupceri.expense_tracker_backend.service.ExpenseService;
+
+import dto.ExpenseDTO;
+import jakarta.validation.Valid;
 
 @RestController 
 @RequestMapping("/api/expenses")
@@ -26,13 +30,14 @@ public class ExpenseController {
     }
 
     @GetMapping //Tüm harcamaları listele: GET http://localhost:8080/api/expenses
-    public List<Expense> getAllExpenses() { //komutu ile servisi tetikler, veritabanındaki tüm harcamaları çeker ve ekrana JSON olarak fırlatır.
-        return  expenseService.getAllExpenses();
+    public List<ExpenseDTO> getAllExpenses() { //komutu ile servisi tetikler, veritabanındaki tüm harcamaları çeker ve ekrana JSON olarak fırlatır.
+        return expenseService.getAllExpenses();
     }
 
     @PostMapping //Yeni harcama ekle: POST http://localhost:8080/api/expenses
-    public Expense createExpense(@RequestBody Expense expense) {
-        return expenseService.saveExpense(expense);
+    public ResponseEntity<ExpenseDTO> createExpense(@Valid @RequestBody ExpenseDTO expenseDTO) {
+        ExpenseDTO createdExpense = expenseService.saveExpense(expenseDTO);
+        return ResponseEntity.ok(createdExpense);
     }
 
     // Harcama sil: DELETE http://localhost:8080/api/expenses/{id}

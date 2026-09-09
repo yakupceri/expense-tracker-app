@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap / Kayıt Ol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans flex justify-center items-center h-screen m-0">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg w-96 border border-gray-200">
+        <h2 id="form-title" class="text-2xl font-bold text-gray-800 mb-6 text-center">Giriş Yap</h2>
+        
+        <form id="authForm" onsubmit="handleSubmit(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Kullanıcı Adı</label>
+                <input type="text" id="username" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Şifre</label>
+                <input type="password" id="password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Sadece Kayıt Ol modunda görünecek şifre tekrar alanı -->
+            <div id="confirm-password-container" class="hidden">
+                <label class="block text-sm font-medium text-gray-700">Şifreyi Tekrar Gir</label>
+                <input type="password" id="confirmPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            
+            <button type="submit" id="action-btn" class="w-full bg-blue-600 text-white font-medium py-2.5 px-4 rounded-md hover:bg-blue-700 transition shadow-md">Giriş Yap</button>
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-600">
+            <p id="switch-text">Hesabın yok mu? <span class="text-blue-600 font-medium underline cursor-pointer" onclick="toggleMode()">Kayıt Ol</span></p>
+        </div>
+    </div>
+
+    <script>
+        let isLoginMode = true;
+
+        // Giriş ve Kayıt modunu dinamik değiştiren fonksiyon
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            const title = document.getElementById("form-title");
+            const btn = document.getElementById("action-btn");
+            const switchText = document.getElementById("switch-text");
+            const confirmContainer = document.getElementById("confirm-password-container");
+            const confirmInput = document.getElementById("confirmPassword");
+
+            if (isLoginMode) {
+                title.innerText = "Giriş Yap";
+                btn.innerText = "Giriş Yap";
+                switchText.innerHTML = 'Hesabın yok mu? <span class="text-blue-600 font-medium underline cursor-pointer" onclick="toggleMode()">Kayıt Ol</span>';
+                confirmContainer.classList.add("hidden"); // Şifre tekrarı gizle
+                confirmInput.removeAttribute("required");
+            } else {
+                title.innerText = "Aramıza Katıl";
+                btn.innerText = "Kayıt Ol";
+                switchText.innerHTML = 'Zaten hesabın var mı? <span class="text-blue-600 font-medium underline cursor-pointer" onclick="toggleMode()">Giriş Yap</span>';
+                confirmContainer.classList.remove("hidden"); // Şifre tekrarını göster
+                confirmInput.setAttribute("required", "true");
+            }
+        }
+
+        // Form gönderildiğinde çalışacak mantık
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            // Eğer kayıt modundaysak şifreler uyuşuyor mu kontrol edelim
+            if (!isLoginMode) {
+                const confirmPassword = document.getElementById("confirmPassword").value;
+                if (password !== confirmPassword) {
+                    alert("Şifreler birbiriyle eşleşmiyor!");
+                    return;
+                }
+            }
+
+            const endpoint = isLoginMode ? "/api/auth/login" : "/api/auth/register";
+
+            try {
+                const response = await fetch(`http://localhost:8080${endpoint}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const contentType = response.headers.get("content-type");
+                let data;
+                if (contentType && contentType.includes("application/json")) {
+                    data = await response.json();
+                } else {
+                    data = await response.text();
+                }
+
+                if (response.ok) {
+                    if (isLoginMode) {
+                        alert("Giriş başarılı! Yönlendiriliyorsun...");
+                        localStorage.setItem("userId", data.id);
+                        localStorage.setItem("username", data.username);
+                        window.location.href = "index.html"; 
+                    } else {
+                        alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
+                        toggleMode(); // Giriş ekranına geri döndür
+                        document.getElementById("authForm").reset();
+                    }
+                } else {
+                    alert("Hata: " + (data.message || data));
+                }
+            } catch (error) {
+                console.error("Bağlantı hatası:", error);
+                alert("Sunucuya bağlanılamadı! Spring Boot'un çalıştığından emin ol.");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -10,7 +10,10 @@
 <body class="bg-gray-100 font-sans p-6">
 
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">💰 Harcama Takip Uygulaması</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">💰 Harcama Takip Uygulaması</h1>
+            <button onclick="logout()" class="bg-red-500 text-white text-sm py-1 px-3 rounded hover:bg-red-600 transition">Çıkış Yap</button>
+        </div>
 
         <!-- Harcama Ekleme Formu -->
         <form id="expenseForm" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 bg-gray-50 p-4 rounded-lg border">
@@ -55,13 +58,26 @@
     </div>
 
     <script>
-        // Backend'in çalıştığı adres
+        // 1. Giriş kontrolü (Kullanıcı giriş yapmadıysa direkt login.html'e at)
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+            window.location.href = "login.html";
+        }
+
+        // Çıkış yap fonksiyonu
+        function logout() {
+            localStorage.removeItem("userId");
+            localStorage.removeItem("username");
+            window.location.href = "login.html";
+        }
+
+        // Backend'in çalıştığı temel adres
         const API_URL = 'http://localhost:8080/api/expenses';
 
-        // 1. Veritabanındaki tüm harcamaları çek ve ekrandaki tabloda göster
+        // 2. Sadece bu kullanıcıya ait harcamaları çek ve ekranda göster
         async function fetchExpenses() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(`${API_URL}/user/${userId}`);
                 const expenses = await response.json();
                 const tbody = document.getElementById('expenseTableBody');
                 tbody.innerHTML = '';
@@ -84,7 +100,7 @@
             }
         }
 
-        // 2. Form doldurulup "Ekle" butonuna basıldığında backend'e POST isteği at
+        // 3. Form doldurulup "Ekle" butonuna basıldığında harcamayı bu kullanıcıya bağlı olarak kaydet
         document.getElementById('expenseForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -95,7 +111,7 @@
                 date: document.getElementById('date').value
             };
 
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${API_URL}/${userId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newExpense)
@@ -105,13 +121,13 @@
                 document.getElementById('expenseForm').reset();
                 fetchExpenses(); // Listeyi anında güncelle
             } else {
-                alert('Harcama eklenemedi! Kuralları kontrol edin.');
+                alert('Harcama eklenemedi!');
             }
         });
 
-        // 3. Sil butonuna basıldığında ilgili ID'yi sil
+        // 4. Sil butonuna basıldığında ilgili harcamayı sil
         async function deleteExpense(id) {
-            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const response = await fetch(`http://localhost:8080/api/expenses/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 fetchExpenses();
             }

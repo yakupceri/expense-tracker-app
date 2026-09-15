@@ -8,7 +8,7 @@ A secure full-stack web application designed to help users manage and track thei
 
 ## 🚀 Tech Stack
 
-* **Backend:** Java, Spring Spring Boot, Spring Security, Spring Data JPA / Hibernate, MySQL
+* **Backend:** Java, Spring Boot, Spring Security, Spring Data JPA / Hibernate, MySQL
 * **Frontend:** HTML, CSS, JavaScript
 * **Tools & Version Control:** Git, GitHub, Postman, Maven
 
@@ -36,14 +36,13 @@ A secure full-stack web application designed to help users manage and track thei
 ## ⚙️ Getting Started
 
 ### Prerequisites
+
 * Java JDK 17+
 * MySQL Server
 * Maven
 
 ### Installation & Run Backend
+
 1. Clone the repository:
    ```bash
    git clone [https://github.com/yakupceri/expense-tracker-app.git](https://github.com/yakupceri/expense-tracker-app.git)
-2.
-   Run the Spring Boot application:
-  mvn spring-boot:run
